@@ -10,8 +10,9 @@
 <style>
 /* Layout: app de consulta — barra lateral com os processos por área, painel com abas por processo (fluxo, regras, RACI, SIPOC, dados, SAP) */
 :root{
-  --bg:#F3F4F2; --panel:#FFFFFF; --ink:#1A2329; --soft:#55626B; --line:#DCE0DD; --line2:#ECEEEC;
-  --accent:#D9442B; --accent-ink:#B23620; --accent-tint:#FBE9E4;
+  --bg:#F2F3F5; --panel:#FFFFFF; --ink:#1E252C; --soft:#56616B; --line:#DDE1E5; --line2:#ECEEF1;
+  --accent:#EE5A24; --accent-ink:#C2410C; --accent-tint:#FDEBE2;
+  --brand-dark:#242A30; --brand-grad:linear-gradient(90deg,#F2402A 0%,#F7931E 100%);
   --steel:#2E4A5C; --steel-tint:#E3ECF1;
   --ok:#2F7D55; --ok-tint:#E2F2E8; --warn:#A86A12; --warn-tint:#FBF0DC; --muted:#7A868E; --muted-tint:#ECEEEE;
   --lane:#F7F8F6; --lane-head:#E9ECEA; --task:#FFFFFF; --task-line:#6E8592; --gate:#FFF6DC; --gate-line:#B98A1C;
@@ -19,15 +20,15 @@
   --f-display:'Archivo',system-ui,sans-serif; --f-body:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif; --f-mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#12181C; --panel:#1A2228; --ink:#E6EBEE; --soft:#A3B0B8; --line:#2E3A42; --line2:#243038;
-  --accent:#F0674F; --accent-ink:#FF8A74; --accent-tint:#3A221D;
+  --bg:#171C21; --panel:#20262C; --ink:#E9EDF0; --soft:#A6B1BA; --line:#323B44; --line2:#283038;
+  --accent:#FF6A2B; --accent-ink:#FF8A4C; --accent-tint:#3B2418;
   --steel:#8FB4CC; --steel-tint:#1F2F3A;
   --ok:#6CC495; --ok-tint:#1C3227; --warn:#E3AE55; --warn-tint:#352A16; --muted:#8C989F; --muted-tint:#263037;
   --lane:#1E272D; --lane-head:#26323A; --task:#222D34; --task-line:#7D97A6; --gate:#3A3220; --gate-line:#D6A83E;
   --start:#6CC495; --end:#FF8A74; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#12181C; --panel:#1A2228; --ink:#E6EBEE; --soft:#A3B0B8; --line:#2E3A42; --line2:#243038;
-  --accent:#F0674F; --accent-ink:#FF8A74; --accent-tint:#3A221D;
+  --bg:#171C21; --panel:#20262C; --ink:#E9EDF0; --soft:#A6B1BA; --line:#323B44; --line2:#283038;
+  --accent:#FF6A2B; --accent-ink:#FF8A4C; --accent-tint:#3B2418;
   --steel:#8FB4CC; --steel-tint:#1F2F3A;
   --ok:#6CC495; --ok-tint:#1C3227; --warn:#E3AE55; --warn-tint:#352A16; --muted:#8C989F; --muted-tint:#263037;
   --lane:#1E272D; --lane-head:#26323A; --task:#222D34; --task-line:#7D97A6; --gate:#3A3220; --gate-line:#D6A83E;
@@ -41,11 +42,12 @@ button{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .app{display:grid;grid-template-columns:300px minmax(0,1fr);min-height:100%}
 /* sidebar */
-.side{background:var(--panel);border-right:1px solid var(--line);padding:20px 14px 0 max(14px,env(safe-area-inset-left,0px));position:sticky;top:0;height:100vh;overflow:auto;display:flex;flex-direction:column}
+.side{--ink:#EEF1F3;--soft:#A9B3BB;--line:#3A444D;--line2:#313A42;--bg:#2C343C;--panel:#262D34;--accent-tint:rgba(255,106,43,.18);--accent-ink:#FF8A4C;--ok:#6CC495;--warn:#E3AE55;--muted:#8C989F;color:var(--ink);background:linear-gradient(180deg,rgba(36,42,48,.9),rgba(36,42,48,.97)),url(img/pattern.jpg) center top/520px repeat,#242A30;border-right:0;padding:22px 14px 0 max(14px,env(safe-area-inset-left,0px));position:sticky;top:0;height:100vh;overflow:auto;display:flex;flex-direction:column}
 .navs{display:flex;flex-direction:column;flex:1 0 auto}
-.brand{display:flex;flex-direction:column;gap:2px;padding:4px 8px 16px;text-decoration:none}
-.brand b{font:800 20px/1.1 var(--f-display);letter-spacing:-.2px}
-.brand span{font-size:12.5px;color:var(--soft)}
+.brand{display:flex;flex-direction:column;gap:10px;padding:2px 8px 18px;text-decoration:none}
+.brand img{width:168px;height:auto;display:block}
+.brand span{font:700 11.5px/1 var(--f-display);letter-spacing:2.2px;text-transform:uppercase;color:#FFFFFF;display:flex;align-items:center;gap:8px}
+.brand span::before{content:'';width:18px;height:3px;border-radius:2px;background:var(--brand-grad)}
 .search{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;font-size:14px;margin-bottom:12px}
 .acc{border-top:1px solid var(--line2)}
 .acc:last-child{border-bottom:1px solid var(--line2)}
@@ -77,6 +79,31 @@ h3{font:700 16px/1.25 var(--f-display);margin:0}
 .pill.ok{background:var(--ok-tint);color:var(--ok)} .pill.warn{background:var(--warn-tint);color:var(--warn)} .pill.steel{background:var(--steel-tint);color:var(--steel)}
 .alert{display:flex;gap:12px;align-items:flex-start;background:var(--warn-tint);border:1px solid color-mix(in srgb,var(--warn) 30%,transparent);border-radius:10px;padding:12px 14px;font-size:14.5px}
 .alert b{color:var(--warn)}
+/* marca */
+.hero{position:relative;border-radius:18px;overflow:hidden;color:#fff;background:#E8582A url(img/hero.jpg) right center/cover no-repeat;padding:44px 40px 40px;min-height:290px;display:flex;flex-direction:column;justify-content:flex-end;gap:12px}
+.hero::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(28,33,38,.42) 0%,rgba(28,33,38,.14) 55%,rgba(28,33,38,0) 80%);pointer-events:none}
+.hero>*{position:relative;max-width:640px}
+.hero .eyebrow{color:#fff;opacity:.92;display:flex;align-items:center;gap:10px}
+.hero .eyebrow::before{content:'';width:22px;height:3px;background:#1E252C;border-radius:2px}
+.hero h1{font-size:clamp(34px,5vw,56px);color:#fff;margin:0;letter-spacing:-1px}
+.hero p{margin:0;font-size:16.5px;line-height:1.55;color:rgba(255,255,255,.94)}
+.phead{position:relative;border-radius:18px;overflow:hidden;background:#242A30 url(img/gear.jpg) right center/auto 135% no-repeat;color:#F3F5F6;padding:30px 34px;display:flex;flex-direction:column;gap:12px}
+.phead::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#242A30 0%,#242A30 48%,rgba(36,42,48,.6) 72%,rgba(36,42,48,0) 100%);pointer-events:none}
+.phead>*{position:relative;max-width:720px}
+.phead .eyebrow{color:#FF8A4C}
+.phead h1{color:#fff}
+.phead .lede{color:#C9D2D8}
+.phead .pill{background:rgba(255,255,255,.1);color:#E4E9ED}
+.phead .pill.ok{background:rgba(108,196,149,.18);color:#8FE0B4}
+.phead .pill.warn{background:rgba(227,174,85,.2);color:#F2C67B}
+.phead .pill.steel{background:rgba(143,180,204,.18);color:#B9D3E4}
+.tip{display:flex;align-items:center;gap:18px;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;padding-right:18px}
+.tip img{width:96px;height:112px;object-fit:cover;flex:none}
+.tip b{display:block;font:700 16px/1.25 var(--f-display);margin-bottom:2px}
+.tip p{margin:0;font-size:14px;color:var(--soft)}
+.capa{display:block;width:100%;height:auto;border-radius:14px;aspect-ratio:1006/260;object-fit:cover}
+.nav-empty{display:flex;gap:12px;align-items:center;padding:10px 8px;font-size:13.5px;color:var(--soft)}
+.nav-empty img{width:44px;height:52px;object-fit:cover;border-radius:8px;flex:none}
 /* tabs */
 .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
 .tabs button{background:none;border:0;padding:10px 14px;font-weight:600;font-size:14.5px;color:var(--soft);border-bottom:2.5px solid transparent;cursor:pointer;white-space:nowrap;display:flex;gap:7px;align-items:center}
@@ -135,7 +162,8 @@ details.file .tbl-wrap{border:0;border-radius:0 0 10px 10px}
 .note{font-size:13px;color:var(--soft)}
 /* home */
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
-.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;position:relative;overflow:hidden}
+.stat::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--brand-grad)}
 .stat b{display:block;font:800 34px/1 var(--f-display);font-variant-numeric:tabular-nums}
 .stat span{font-size:13.5px;color:var(--soft)}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
@@ -145,6 +173,8 @@ details.file .tbl-wrap{border:0;border-radius:0 0 10px 10px}
 .card p{margin:0;font-size:13.5px;color:var(--soft);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .card .foot{display:flex;gap:10px;font:500 12px var(--f-mono);color:var(--muted);margin-top:auto}
 .sec-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:6px}
+.sec-h h2{display:flex;align-items:center;gap:10px}
+.sec-h h2::before{content:'';width:14px;height:14px;border-radius:4px;background:var(--brand-grad);flex:none}
 .empty{padding:28px;text-align:center;color:var(--soft)}
 .topline{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .top-actions{display:flex;gap:8px;align-items:center}
@@ -176,7 +206,12 @@ details.file .tbl-wrap{border:0;border-radius:0 0 10px 10px}
   .navs>#nav{margin-bottom:6px}
   .profile-wrap{position:static;margin-top:6px;padding:12px 0 6px;border-top:1px solid var(--line2);display:flex;flex-direction:column-reverse}
   .profile-menu{position:static;box-shadow:none;margin-top:8px}
-  .brand{padding-bottom:4px}
+  .brand{padding-bottom:4px;gap:8px}
+  .brand img{width:132px}
+  .hero{padding:34px 22px 26px;min-height:0;background-position:left center}
+  .phead{padding:24px 20px;background-size:auto 100%;background-position:right -140px center}
+  .phead::before{background:linear-gradient(90deg,#242A30 0%,#242A30 60%,rgba(36,42,48,.75) 100%)}
+  .tip img{width:76px;height:96px}
   .kv{grid-template-columns:1fr}
   .rules{grid-template-columns:1fr}
 }
@@ -189,7 +224,7 @@ details.file .tbl-wrap{border:0;border-radius:0 0 10px 10px}
 <div class="app">
   <aside class="side" id="side">
     <div class="topline">
-      <a class="brand" href="#inicio"><b>Processos Cinpal</b><span>Mapeamento AS-IS · projeto SAP</span></a>
+      <a class="brand" href="#inicio" aria-label="Processos Cinpal, início"><img src="img/logo.png" alt="Cinpal – Confiança em avançar" width="361" height="105"><span>Processos · AS-IS</span></a>
       <div class="top-actions">
         <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="side">Processos</button>
       </div>
@@ -244,23 +279,25 @@ function navHTML(filter){
     if(!items.length) return '';
     const open=!!f||items.some(p=>p.id===cur)||state.open.has(g);
     return `<details class="acc" data-g="${esc(g)}" ${open?'open':''}><summary>${esc(g)}<span class="cnt">${items.length}</span></summary><ul class="nav">${items.map(p=>`<li><a href="#${p.id}" ${cur===p.id?'aria-current="page"':''}><i class="dot ${statusCls(p.status)==='ok'?'':statusCls(p.status)}"></i>${esc(p.titulo)}</a></li>`).join('')}</ul></details>`;
-  }).join('')||'<p class="note" style="padding:0 8px">Nenhum processo encontrado.</p>';
+  }).join('')||'<div class="nav-empty"><img src="img/lupa.jpg" alt=""><span>Nenhum processo encontrado. Tente outra palavra.</span></div>';
 }
 function renderNav(){ $('#nav').innerHTML=navHTML($('#q').value); document.querySelectorAll('#nav .acc').forEach(d=>d.addEventListener('toggle',()=>{ if($('#q').value) return; d.open?state.open.add(d.dataset.g):state.open.delete(d.dataset.g); })); $('#homeLink').toggleAttribute('aria-current',!location.hash||location.hash==='#inicio'); if($('#homeLink').hasAttribute('aria-current')) $('#homeLink').setAttribute('aria-current','page'); }
 
 function home(){
   const total=DATA.length, done=DATA.filter(p=>p.status==='Concluído').length;
   const steps=DATA.reduce((a,p)=>a+p.raci.length,0), fields=DATA.reduce((a,p)=>a+p.tabelas.length,0), flows=DATA.reduce((a,p)=>a+p.diagramas.length,0);
-  return `<div><p class="eyebrow">Fase Prepare · SAP S/4HANA</p><h1>Processos Cinpal</h1></div>
-  <p class="lede">Os processos AS-IS das áreas da Cinpal, organizados por módulo. Cada processo abre separado, com o fluxo do Bizagi, as regras de negócio, o RACI, o SIPOC, os dados usados hoje e a recomendação do padrão SAP. É o retrato de como a Cinpal trabalha hoje, ponto de partida para os workshops do Explore.</p>
+  return `<section class="hero"><p class="eyebrow">Fase Prepare · SAP S/4HANA</p><h1>Processos Cinpal</h1>
+  <p>Os processos AS-IS das áreas da Cinpal, organizados por módulo. Cada processo abre separado, com o fluxo do Bizagi, as regras de negócio, o RACI, o SIPOC, os dados usados hoje e a recomendação do padrão SAP. É o retrato de como a Cinpal trabalha hoje, ponto de partida para os workshops do Explore.</p></section>
   <div class="stats">
     <div class="stat"><b>${done}/${total}</b><span>processos concluídos</span></div>
     <div class="stat"><b>${flows}</b><span>fluxos desenhados no Bizagi</span></div>
     <div class="stat"><b>${steps}</b><span>etapas com responsável (RACI)</span></div>
     <div class="stat"><b>${fields}</b><span>campos de dados levantados</span></div>
   </div>
+  <div class="tip"><img src="img/lupa.jpg" alt="" width="300" height="353"><div><b>Procure qualquer processo</b><p>A busca do menu encontra pelo nome do processo, por quem participa ou por um campo de dados, como “OM” ou “Cpk”.</p></div></div>
   ${GROUPS.map(g=>{const it=DATA.filter(p=>p.grupo===g);return `<div class="sec-h"><h2>${g}</h2><span class="note">Key user: ${esc([...new Set(it.map(p=>p.keyuser))].join(', '))}</span></div>
   <div class="cards">${it.map(p=>`<a class="card" href="#${p.id}"><div class="meta"><span class="pill ${statusCls(p.status)}">${esc(p.status)}</span></div><h3>${esc(p.titulo)}</h3><p>${esc(p.conceito||'Conceito não preenchido no mapeamento.')}</p><div class="foot"><span>${p.diagramas.length} fluxo${p.diagramas.length===1?'':'s'}</span><span>${p.raci.length} etapas</span><span>${p.tabelas.length} campos</span></div></a>`).join('')}</div>`}).join('')}
+  <img class="capa" src="img/capa.jpg" alt="Cinpal – Confiança em avançar" width="1006" height="260" loading="lazy">
   <p class="note">Fonte: pacote de mapeamentos AS-IS (Bizagi e Excel) e planilha “Andamento do Mapeamento de Processos Críticos 2026”, nov/2026. A recomendação SAP de cada processo é do Head do módulo e será validada no Explore.</p>`;
 }
 
@@ -376,9 +413,9 @@ const TABS=[['fluxo','Fluxo',p=>p.diagramas.length],['regras','Regras',p=>Object
 function proc(p){
   const tab=state.tab[p.id]||(p.diagramas.length?'fluxo':'regras');
   const body={fluxo:flowTab,regras:rulesTab,raci:raciTab,sipoc:sipocTab,dados:dataTab,sap:sapTab}[tab](p);
-  return `<div><p class="eyebrow">${esc(p.grupo)} · key user ${esc(p.keyuser)}</p><h1>${esc(p.titulo)}</h1></div>
+  return `<section class="phead"><p class="eyebrow">${esc(p.grupo)} · key user ${esc(p.keyuser)}</p><h1>${esc(p.titulo)}</h1>
   <div class="meta"><span class="pill ${statusCls(p.status)}">${esc(p.status)}</span>${p.diagramas.length?`<span class="pill steel">${p.diagramas.length} fluxo${p.diagramas.length>1?'s':''} no Bizagi</span>`:''}</div>
-  ${p.conceito?`<p class="lede">${esc(p.conceito)}</p>`:''}
+  ${p.conceito?`<p class="lede">${esc(p.conceito)}</p>`:''}</section>
   ${ALERTS[p.id]?`<div class="alert"><b>Atenção</b><span>${esc(ALERTS[p.id])}</span></div>`:''}
   <div class="tabs" role="tablist">${TABS.map(([k,l,c])=>{const n=c(p);return `<button role="tab" data-tab="${k}" aria-selected="${k===tab}">${l}${n!=null?`<span class="n">${n}</span>`:''}</button>`;}).join('')}</div>
   <div role="tabpanel">${body}</div>`;
