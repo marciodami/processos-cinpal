@@ -1,6 +1,6 @@
-# Processos QM/PM – Cinpal
+# Processos Cinpal
 
-Site de consulta dos processos AS-IS de Qualidade, Laboratório (TTU), Manutenção e Lean mapeados para o projeto SAP S/4HANA da Cinpal.
+Site de consulta dos processos AS-IS da Cinpal, organizados por módulo, mapeados para o projeto SAP S/4HANA. Hoje traz Qualidade, Laboratório (TTU), Manutenção e Lean; os demais módulos entram conforme forem mapeados.
 
 Cada processo abre separado, com o fluxo do Bizagi, regras de negócio, RACI, SIPOC, dados usados hoje e a recomendação do padrão SAP.
 

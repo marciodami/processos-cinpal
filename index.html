@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Processos QM/PM Cinpal</title>
+<title>Processos Cinpal</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
@@ -45,7 +45,15 @@ button{font:inherit;color:inherit}
 .brand b{font:800 20px/1.1 var(--f-display);letter-spacing:-.2px}
 .brand span{font-size:12.5px;color:var(--soft)}
 .search{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;font-size:14px;margin-bottom:12px}
-.grp{margin:14px 0 4px;padding:0 8px;font:600 11.5px/1 var(--f-body);letter-spacing:1.4px;text-transform:uppercase;color:var(--soft);display:flex;justify-content:space-between}
+.acc{border-top:1px solid var(--line2)}
+.acc:last-child{border-bottom:1px solid var(--line2)}
+.acc>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:12px 8px;border-radius:7px;font:700 13px/1.1 var(--f-display);letter-spacing:1.3px;text-transform:uppercase;color:var(--accent-ink);user-select:none}
+.acc>summary::-webkit-details-marker{display:none}
+.acc>summary:hover{background:var(--bg)}
+.acc>summary .cnt{margin-left:auto;font:500 11.5px/1 var(--f-mono);letter-spacing:0;color:var(--accent-ink);background:var(--accent-tint);padding:3px 7px;border-radius:5px}
+.acc>summary::after{content:'';width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);transition:transform .15s;margin-right:4px}
+.acc[open]>summary::after{transform:rotate(45deg)}
+.acc .nav{padding:0 0 10px}
 .nav{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
 .nav a{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:7px;text-decoration:none;font-size:14px;color:var(--ink)}
 .nav a:hover{background:var(--bg)}
@@ -156,7 +164,7 @@ details.file .tbl-wrap{border:0;border-radius:0 0 10px 10px}
 <div class="app">
   <aside class="side" id="side">
     <div class="topline">
-      <a class="brand" href="#inicio"><b>Processos QM/PM</b><span>Cinpal · mapeamento AS-IS</span></a>
+      <a class="brand" href="#inicio"><b>Processos Cinpal</b><span>Mapeamento AS-IS · projeto SAP</span></a>
       <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="side">Processos</button>
     </div>
     <div class="navs">
@@ -183,7 +191,7 @@ const RULE_LABEL=[
  [/^Desafio/i,'Desafios e oportunidades'],[/^Partes/i,'Áreas envolvidas'],[/^Pol[ií]tica/i,'Política'],
  [/^Procedimento/i,'Procedimento'],[/^Instru/i,'Instrução de setor'],[/^Sistemas/i,'Sistemas e registros']
 ];
-let DATA=[], state={tab:{},diag:{},zoom:{}};
+let DATA=[], state={tab:{},diag:{},zoom:{},open:new Set()};
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const statusCls=s=>s==='Concluído'?'ok':(s==='Incompleto'?'warn':'muted');
@@ -195,16 +203,17 @@ function navHTML(filter){
   return GROUPS.map(g=>{
     const items=DATA.filter(p=>p.grupo===g&&(!f||JSON.stringify([p.titulo,p.conceito,p.atores,p.raci.map(r=>r.etapa),p.tabelas.map(t=>t[2])]).toLowerCase().includes(f)));
     if(!items.length) return '';
-    return `<div class="grp"><span>${g}</span><span>${items.length}</span></div><ul class="nav">${items.map(p=>`<li><a href="#${p.id}" ${cur===p.id?'aria-current="page"':''}><i class="dot ${statusCls(p.status)==='ok'?'':statusCls(p.status)}"></i>${esc(p.titulo)}</a></li>`).join('')}</ul>`;
+    const open=!!f||items.some(p=>p.id===cur)||state.open.has(g);
+    return `<details class="acc" data-g="${esc(g)}" ${open?'open':''}><summary>${esc(g)}<span class="cnt">${items.length}</span></summary><ul class="nav">${items.map(p=>`<li><a href="#${p.id}" ${cur===p.id?'aria-current="page"':''}><i class="dot ${statusCls(p.status)==='ok'?'':statusCls(p.status)}"></i>${esc(p.titulo)}</a></li>`).join('')}</ul></details>`;
   }).join('')||'<p class="note" style="padding:0 8px">Nenhum processo encontrado.</p>';
 }
-function renderNav(){ $('#nav').innerHTML=navHTML($('#q').value); $('#homeLink').toggleAttribute('aria-current',!location.hash||location.hash==='#inicio'); if($('#homeLink').hasAttribute('aria-current')) $('#homeLink').setAttribute('aria-current','page'); }
+function renderNav(){ $('#nav').innerHTML=navHTML($('#q').value); document.querySelectorAll('#nav .acc').forEach(d=>d.addEventListener('toggle',()=>{ if($('#q').value) return; d.open?state.open.add(d.dataset.g):state.open.delete(d.dataset.g); })); $('#homeLink').toggleAttribute('aria-current',!location.hash||location.hash==='#inicio'); if($('#homeLink').hasAttribute('aria-current')) $('#homeLink').setAttribute('aria-current','page'); }
 
 function home(){
   const total=DATA.length, done=DATA.filter(p=>p.status==='Concluído').length;
   const steps=DATA.reduce((a,p)=>a+p.raci.length,0), fields=DATA.reduce((a,p)=>a+p.tabelas.length,0), flows=DATA.reduce((a,p)=>a+p.diagramas.length,0);
-  return `<div><p class="eyebrow">Fase Prepare · SAP S/4HANA</p><h1>Processos AS-IS de Qualidade, Manutenção e Lean</h1></div>
-  <p class="lede">Cada processo abre separado, com o fluxo do Bizagi, as regras de negócio, o RACI, o SIPOC, os dados usados hoje e a recomendação do padrão SAP. É o retrato de como a Cinpal trabalha hoje, ponto de partida para os workshops do Explore.</p>
+  return `<div><p class="eyebrow">Fase Prepare · SAP S/4HANA</p><h1>Processos Cinpal</h1></div>
+  <p class="lede">Os processos AS-IS das áreas da Cinpal, organizados por módulo. Cada processo abre separado, com o fluxo do Bizagi, as regras de negócio, o RACI, o SIPOC, os dados usados hoje e a recomendação do padrão SAP. É o retrato de como a Cinpal trabalha hoje, ponto de partida para os workshops do Explore.</p>
   <div class="stats">
     <div class="stat"><b>${done}/${total}</b><span>processos concluídos</span></div>
     <div class="stat"><b>${flows}</b><span>fluxos desenhados no Bizagi</span></div>
@@ -213,7 +222,7 @@ function home(){
   </div>
   ${GROUPS.map(g=>{const it=DATA.filter(p=>p.grupo===g);return `<div class="sec-h"><h2>${g}</h2><span class="note">Key user: ${esc([...new Set(it.map(p=>p.keyuser))].join(', '))}</span></div>
   <div class="cards">${it.map(p=>`<a class="card" href="#${p.id}"><div class="meta"><span class="pill ${statusCls(p.status)}">${esc(p.status)}</span></div><h3>${esc(p.titulo)}</h3><p>${esc(p.conceito||'Conceito não preenchido no mapeamento.')}</p><div class="foot"><span>${p.diagramas.length} fluxo${p.diagramas.length===1?'':'s'}</span><span>${p.raci.length} etapas</span><span>${p.tabelas.length} campos</span></div></a>`).join('')}</div>`}).join('')}
-  <p class="note">Fonte: pacote de mapeamentos AS-IS (Bizagi e Excel) e planilha “Andamento do Mapeamento de Processos Críticos 2026”, nov/2026. A recomendação SAP de cada processo é do Head de QM/PM e será validada no Explore.</p>`;
+  <p class="note">Fonte: pacote de mapeamentos AS-IS (Bizagi e Excel) e planilha “Andamento do Mapeamento de Processos Críticos 2026”, nov/2026. A recomendação SAP de cada processo é do Head do módulo e será validada no Explore.</p>`;
 }
 
 /* ---------- diagram ---------- */
@@ -322,7 +331,7 @@ function dataTab(p){
 }
 function sapTab(p){
   const txt=esc(p.sap).replace(/\b([A-Z]{2,4}\d{2,3}[A-Z]?)\b/g,'<code>$1</code>');
-  return `<div class="stack"><div class="sap">${txt}</div><p class="note">Recomendação do Head de QM/PM pelo padrão SAP (best practices). É ponto de partida para o workshop de fit-to-standard e pode mudar no Explore.</p></div>`;
+  return `<div class="stack"><div class="sap">${txt}</div><p class="note">Recomendação do Head do módulo pelo padrão SAP (best practices). É ponto de partida para o workshop de fit-to-standard e pode mudar no Explore.</p></div>`;
 }
 const TABS=[['fluxo','Fluxo',p=>p.diagramas.length],['regras','Regras',p=>Object.keys(p.regras).length],['raci','RACI',p=>p.raci.length],['sipoc','SIPOC',p=>p.sipoc.length],['dados','Dados',p=>p.tabelas.length],['sap','No SAP',()=>null]];
 function proc(p){
