@@ -144,14 +144,29 @@ details.file .tbl-wrap{border:0;border-radius:0 0 10px 10px}
 .card .foot{display:flex;gap:10px;font:500 12px var(--f-mono);color:var(--muted);margin-top:auto}
 .sec-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:6px}
 .empty{padding:28px;text-align:center;color:var(--soft)}
+.topline{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.top-actions{display:flex;gap:8px;align-items:center;position:relative}
+.profile-btn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--accent-tint);color:var(--accent-ink);font:700 14px/1 var(--f-display);cursor:pointer;display:grid;place-items:center;flex:none}
+.profile-btn:hover{border-color:var(--accent)}
+.profile-menu{position:absolute;top:46px;right:0;z-index:30;width:min(280px,calc(100vw - 32px));background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.14);padding:14px;display:flex;flex-direction:column;gap:12px}
+.profile-menu .who{display:flex;gap:12px;align-items:center;min-width:0}
+.profile-menu .who .avatar{width:42px;height:42px;border-radius:50%;flex:none;display:grid;place-items:center;background:var(--accent-tint);color:var(--accent-ink);font:700 15px/1 var(--f-display);border:1px solid var(--line)}
+.profile-menu .who div{min-width:0}
+.profile-menu .who b{display:block;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.profile-menu .who .mail{display:block;font-size:12.5px;color:var(--soft);overflow-wrap:anywhere}
+.profile-menu .meta-line{font-size:12.5px;color:var(--soft);border-top:1px solid var(--line2);padding-top:10px}
+.logout{display:flex;justify-content:center;align-items:center;gap:8px;padding:9px 12px;border-radius:8px;background:var(--ink);color:var(--panel);text-decoration:none;font-weight:600;font-size:14px}
+.logout:hover{opacity:.9}
 .menu-btn{display:none}
 @media (max-width:860px){
   .app{grid-template-columns:1fr}
   .side{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line);padding:14px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px))}
   .side .navs{display:none}
   .side.open .navs{display:block}
-  .menu-btn{display:inline-flex;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:8px 12px;font-weight:600;font-size:14px;cursor:pointer;margin-bottom:10px}
-  .topline{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+  .menu-btn{display:inline-flex;align-items:center;border:1px solid var(--line);background:var(--bg);border-radius:8px;height:38px;padding:0 12px;font-weight:600;font-size:14px;cursor:pointer}
+  .topline{margin-bottom:10px}
+  .side{position:relative;z-index:20;overflow:visible}
+  .brand{padding-bottom:4px}
   .kv{grid-template-columns:1fr}
   .rules{grid-template-columns:1fr}
 }
@@ -165,7 +180,15 @@ details.file .tbl-wrap{border:0;border-radius:0 0 10px 10px}
   <aside class="side" id="side">
     <div class="topline">
       <a class="brand" href="#inicio"><b>Processos Cinpal</b><span>Mapeamento AS-IS · projeto SAP</span></a>
-      <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="side">Processos</button>
+      <div class="top-actions">
+        <button class="profile-btn" id="profileBtn" aria-haspopup="true" aria-expanded="false" aria-label="Meu perfil" hidden>?</button>
+        <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="side">Processos</button>
+        <div class="profile-menu" id="profileMenu" role="dialog" aria-label="Perfil" hidden>
+          <div class="who"><span class="avatar" id="pmAvatar" aria-hidden="true">?</span><div><b id="pmName">Usuário</b><span class="mail" id="pmEmail"></span></div></div>
+          <p class="meta-line" id="pmMeta" style="margin:0">Acesso protegido pelo Cloudflare Access.</p>
+          <a class="logout" href="/cdn-cgi/access/logout">Sair do site</a>
+        </div>
+      </div>
     </div>
     <div class="navs">
       <input class="search" id="q" type="search" placeholder="Buscar processo, ator, campo…" aria-label="Buscar processo">
@@ -359,6 +382,31 @@ function rerender(p){ const y=window.scrollY; route(); window.scrollTo(0,y); }
 window.addEventListener('hashchange',()=>{route(); window.scrollTo(0,0);});
 $('#q').addEventListener('input',renderNav);
 $('#menuBtn').addEventListener('click',()=>{const o=$('#side').classList.toggle('open'); $('#menuBtn').setAttribute('aria-expanded',o);});
+/* perfil (Cloudflare Access) */
+function initials(name,email){ const src=(name||'').trim()||(email||'').split('@')[0]; const parts=src.split(/[\s._-]+/).filter(Boolean); return ((parts[0]||'?')[0]+((parts[1]||'')[0]||'')).toUpperCase(); }
+function showProfile(id){
+  const email=id.email||'', name=id.name||'';
+  const ini=initials(name,email);
+  $('#profileBtn').textContent=ini; $('#pmAvatar').textContent=ini;
+  $('#pmName').textContent=name||email.split('@')[0]||'Usuário'; $('#pmEmail').textContent=email;
+  if(id.iat){ try{ $('#pmMeta').textContent='Conectado desde '+new Date(id.iat*1000).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'})+'.'; }catch(e){} }
+  $('#profileBtn').hidden=false;
+}
+function cookieIdentity(){
+  try{ const c=document.cookie.split('; ').find(x=>x.startsWith('CF_Authorization=')); if(!c) return null;
+    const b=c.split('=')[1].split('.')[1].replace(/-/g,'+').replace(/_/g,'/'); const j=JSON.parse(decodeURIComponent(escape(atob(b))));
+    return j.email?{email:j.email,name:j.name||'',iat:j.iat}:null; }catch(e){ return null; }
+}
+if(location.protocol.startsWith('http')){
+  fetch('/cdn-cgi/access/get-identity',{credentials:'same-origin'}).then(r=>r.ok?r.json():null).then(j=>{
+    const ck=cookieIdentity();
+    if(j&&j.email) showProfile({email:j.email,name:j.name||'',iat:ck&&ck.iat}); else if(ck) showProfile(ck);
+  }).catch(()=>{ const ck=cookieIdentity(); if(ck) showProfile(ck); });
+}
+function closeProfile(){ $('#profileMenu').hidden=true; $('#profileBtn').setAttribute('aria-expanded','false'); }
+$('#profileBtn').addEventListener('click',e=>{ e.stopPropagation(); const open=$('#profileMenu').hidden; $('#profileMenu').hidden=!open; $('#profileBtn').setAttribute('aria-expanded',String(open)); });
+document.addEventListener('click',e=>{ if(!$('#profileMenu').hidden&&!e.target.closest('#profileMenu')) closeProfile(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeProfile(); });
 DATA=JSON.parse(document.getElementById('dados').textContent); route();
 </script>
 
