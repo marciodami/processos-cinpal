@@ -188,7 +188,28 @@ details.file .tbl-wrap.fit thead th{border-radius:0}
 .sap code,.mono{font:500 .9em var(--f-mono)}
 .note{font-size:13px;color:var(--soft)}
 /* home */
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (min-width:1100px){.stats{grid-template-columns:repeat(4,minmax(0,1fr))}}
+a.stat{color:inherit;text-decoration:none;display:block;transition:border-color .15s,transform .15s}
+a.stat:hover{border-color:var(--accent);transform:translateY(-2px)}
+a.stat:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a.stat .go{display:block;margin-top:10px;font-size:13px;font-weight:600;color:var(--accent-ink)}
+a.stat:hover .go{text-decoration:underline}
+.st-chips{display:flex;flex-wrap:wrap;gap:8px}
+.st-chips a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--line);border-radius:999px;text-decoration:none;font-weight:600;font-size:14px;background:var(--panel);color:inherit}
+.st-chips a[aria-current="page"]{border-color:var(--accent);background:var(--accent-tint);color:var(--accent-ink)}
+.st-chips a b{font:700 12.5px var(--f-mono)}
+.st-list{list-style:none;margin:0;padding:0;border:1px solid var(--line);border-radius:12px;background:var(--panel);overflow:hidden}
+.st-list li+li{border-top:1px solid var(--line2)}
+.st-list a{display:flex;align-items:center;gap:12px;padding:12px 16px;text-decoration:none;color:inherit}
+.st-list a:hover{background:var(--accent-tint)}
+.st-list .nm{flex:1;min-width:0}
+.st-list .nm b{display:block;font-weight:600}
+.st-list .nm small{display:block;color:var(--soft);font-size:12.5px;margin-top:2px}
+.st-list .ln{font:600 12px var(--f-mono);color:var(--accent-ink);white-space:nowrap}
+.st-list .arr{color:var(--muted);font-size:18px;line-height:1}
+.st-back{font-size:14px;font-weight:600;color:var(--accent-ink);text-decoration:none}
+.st-back:hover{text-decoration:underline}
 .stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;position:relative;overflow:hidden}
 .stat::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--brand-grad)}
 .stat b{display:block;font:800 34px/1 var(--f-display);font-variant-numeric:tabular-nums}
@@ -348,9 +369,9 @@ function home(){
   return `<section class="hero"><p class="eyebrow">Fase Prepare · SAP S/4HANA</p><h1>Processos Cinpal</h1>
   <p>Os processos AS-IS das áreas da Cinpal, organizados por módulo do SAP. Cada processo abre separado, com o fluxo, as regras de negócio, o RACI, o SIPOC, os dados usados hoje e o que o padrão SAP oferece. É o retrato de como a Cinpal trabalha hoje, ponto de partida para os workshops do Explore.</p></section>
   <div class="stats">
-    <div class="stat"><b>${ANDAMENTO['Concluído']||0}/${ANDAMENTO.total}</b><span>processos críticos concluídos</span></div>
-    <div class="stat"><b>${ANDAMENTO['Em andamento']||0}</b><span>em andamento</span></div>
-    <div class="stat"><b>${ANDAMENTO['Não iniciado']||0}</b><span>não iniciados</span></div>
+    <a class="stat" href="#status-concluido" aria-label="Ver os processos críticos concluídos"><b>${ANDAMENTO['Concluído']||0}/${ANDAMENTO.total}</b><span>processos críticos concluídos</span><span class="go">Ver lista →</span></a>
+    <a class="stat" href="#status-em-andamento" aria-label="Ver os processos em andamento"><b>${ANDAMENTO['Em andamento']||0}</b><span>em andamento</span><span class="go">Ver lista →</span></a>
+    <a class="stat" href="#status-nao-iniciado" aria-label="Ver os processos não iniciados"><b>${ANDAMENTO['Não iniciado']||0}</b><span>não iniciados</span><span class="go">Ver lista →</span></a>
     <div class="stat"><b>${flows}</b><span>fluxos desenhados no site</span></div>
   </div>
   <nav class="mod-nav" aria-label="Módulos">${MODULES.map(m=>{const n=DATA.filter(p=>p.modulo===m.sigla).length; return n?`<a href="#mod-${m.sigla.replace('/','')}" data-jump="mod-${m.sigla.replace('/','')}"><b>${esc(m.sigla)}</b>${esc(m.nome)} <span class="note">${n}</span></a>`:'';}).join('')}</nav>
@@ -512,9 +533,47 @@ function proc(p){
   <div class="tabs" role="tablist">${TABS.map(([k,l,c])=>{const n=c(p);return `<button role="tab" data-tab="${k}" aria-selected="${k===tab}">${l}${n!=null?`<span class="n">${n}</span>`:''}</button>`;}).join('')}</div>
   <div role="tabpanel">${body}</div>`;
 }
+const STATUS_PAGES=[['concluido','Concluído','Processos concluídos','Mapeamentos que a planilha de andamento marca como concluídos.'],
+  ['em-andamento','Em andamento','Processos em andamento','Mapeamentos que já começaram, mas ainda não terminaram.'],
+  ['nao-iniciado','Não iniciado','Processos não iniciados','Mapeamentos da lista de críticos que ainda não começaram.']];
+function trackerLines(){
+  const m=new Map();
+  DATA.forEach(p=>{
+    (p.andamento||[]).forEach(l=>{ if(!m.has(l.linha)) m.set(l.linha,{...l,id:p.id,modulo:p.modulo,grupo:p.grupo,keyuser:p.keyuser,host:null,pendente:p.pendente,titulo:p.titulo}); });
+  });
+  DATA.forEach(p=>{
+    (p.dentro||[]).forEach(l=>{ if(!m.has(l.linha)) m.set(l.linha,{...l,id:p.id,modulo:p.modulo,grupo:p.grupo,keyuser:p.keyuser,host:p.titulo,pendente:false}); });
+  });
+  return [...m.values()];
+}
+function statusPage(key){
+  const cfg=STATUS_PAGES.find(x=>x[0]===key)||STATUS_PAGES[0];
+  const all=trackerLines(), lines=all.filter(l=>l.status===cfg[1]);
+  const count=k=>all.filter(l=>l.status===STATUS_PAGES.find(x=>x[0]===k)[1]).length;
+  const row=l=>{
+    const notes=[];
+    if(l.host) notes.push('Dentro do mapeamento “'+l.host+'”');
+    else if(l.titulo&&l.titulo!==l.nome) notes.push('No site: “'+l.titulo+'”');
+    if(l.pendente&&l.status==='Concluído') notes.push('Arquivos ainda não estão no site');
+    if(l.keyuser) notes.push('Key user: '+l.keyuser);
+    return `<li><a href="#${l.id}"><span class="nm"><b>${esc(l.nome)}</b><small>${esc(notes.join(' · '))}</small></span><span class="ln">linha ${l.linha}</span><span class="arr" aria-hidden="true">›</span></a></li>`;
+  };
+  const body=MODULES.map(m=>{
+    const ml=lines.filter(l=>l.modulo===m.sigla); if(!ml.length) return '';
+    return `<div class="mod-h"><span class="sig">${esc(m.sigla)}</span><h2>${esc(m.nome)}</h2><span class="note">${ml.length}</span></div>`+
+      m.areas.map(a=>{const al=ml.filter(l=>l.grupo===a).sort((x,y)=>x.nome.localeCompare(y.nome,'pt')); if(!al.length) return '';
+        return `<div class="area-h"><h3>${esc(a)}</h3><span class="note">${al.length} processo${al.length>1?'s':''}</span></div><ul class="st-list">${al.map(row).join('')}</ul>`;}).join('');
+  }).join('');
+  return `<a class="st-back" href="#inicio">← Visão geral</a>
+  <section class="phead"><p class="eyebrow">Andamento dos processos críticos</p><h1>${esc(cfg[2])}</h1>
+  <div class="meta"><span class="pill ${statusCls(cfg[1])}">${lines.length} de ${all.length}</span></div><p class="lede">${esc(cfg[3])} Clique em um processo para abrir.</p></section>
+  <nav class="st-chips" aria-label="Filtrar por status">${STATUS_PAGES.map(x=>`<a href="#status-${x[0]}" ${x[0]===cfg[0]?'aria-current="page"':''}>${esc(x[1])} <b>${count(x[0])}</b></a>`).join('')}</nav>
+  ${body||'<div class="panel empty">Nenhum processo com este status.</div>'}
+  <p class="note">Fonte: planilha “Andamento do Mapeamento de Processos Críticos 2026”, aba MAPEAMENTO. “linha” é a linha do Excel.</p>`;
+}
 function route(){
   const id=location.hash.slice(1); const p=DATA.find(x=>x.id===id);
-  $('#view').innerHTML=p?proc(p):home();
+  $('#view').innerHTML=p?proc(p):(id.startsWith('status-')?statusPage(id.slice(7)):home());
   renderNav();
   if(p){
     document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{state.tab[p.id]=b.dataset.tab; try{localStorage.setItem('tab',b.dataset.tab)}catch(e){} rerender(p);});
