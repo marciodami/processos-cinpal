@@ -68,6 +68,16 @@ button{font:inherit;color:inherit}
 .nav a[aria-current="page"]{background:var(--accent-tint);color:var(--accent-ink);font-weight:600}
 .dot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--ok)}
 .dot.warn{background:var(--warn)} .dot.muted{background:var(--muted)}
+.nav a.pend{opacity:.62;font-style:italic}
+.card.pend{border-style:dashed;background:transparent}
+.card.pend h3{color:var(--soft)}
+.checks{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none}
+.checks li{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:4px 9px;border-radius:999px;border:1px solid var(--line);color:var(--soft)}
+.checks li.on{border-color:transparent;background:var(--ok-tint);color:var(--ok)}
+.checks li.on::before{content:'✓';font-weight:700}
+.checks li:not(.on)::before{content:'○'}
+.lines{margin:0;padding-left:18px}.lines li{margin:2px 0}
+.lines .ln{font:600 12px var(--f-mono);color:var(--accent-ink)}
 .home-link{display:flex;gap:10px;align-items:center;padding:7px 8px;border-radius:7px;text-decoration:none;font-weight:600;font-size:14px}
 .home-link[aria-current="page"]{background:var(--accent-tint);color:var(--accent-ink)}
 /* main */
@@ -269,7 +279,9 @@ details.file .tbl-wrap.fit thead th{border-radius:0}
 </div>
 
 <script>
-const MODULES=[{"sigla": "QM", "nome": "Qualidade", "areas": ["Qualidade", "Laboratório", "Lean"]}, {"sigla": "PM", "nome": "Manutenção", "areas": ["Manutenção"]}, {"sigla": "PP", "nome": "Produção", "areas": ["Engenharia de Produto", "Engenharia de Usinagem", "Forjaria", "Fundição", "Tratamento Térmico", "PCP"]}, {"sigla": "MM", "nome": "Compras", "areas": ["Compras", "Governança de Compras"]}, {"sigla": "SD", "nome": "Vendas", "areas": ["Reposição"]}, {"sigla": "FI/CO", "nome": "Finanças e Controladoria", "curto": "Finanças", "areas": ["Contabilidade", "FP&A", "Tesouraria"]}, {"sigla": "GRC", "nome": "Riscos e Compliance", "curto": "Compliance", "areas": ["GRCI"]}, {"sigla": "TI", "nome": "Tecnologia da Informação", "curto": "Tecnologia", "areas": ["TI"]}];
+const MODULES=[{"sigla": "QM", "nome": "Qualidade", "areas": ["Qualidade", "Laboratório (TTU)", "Lean e Performance"]}, {"sigla": "PM", "nome": "Manutenção", "areas": ["Manutenção"]}, {"sigla": "PP", "nome": "Produção", "areas": ["Engenharia de Produto", "Engenharia de Usinagem", "Engenharia de Forjaria", "Fundição", "Tratamento Térmico"]}, {"sigla": "MM", "nome": "Compras", "areas": ["Compras"]}, {"sigla": "SD", "nome": "Vendas", "areas": ["Vendas Reposição"]}, {"sigla": "FI/CO", "nome": "Finanças e Controladoria", "curto": "Finanças", "areas": ["Controladoria", "Contabilidade", "FP&A", "Tesouraria", "Supply Chain"]}, {"sigla": "GRC", "nome": "Riscos e Compliance", "curto": "Compliance", "areas": ["Controles Internos", "Projetos"]}, {"sigla": "TI", "nome": "Tecnologia da Informação", "curto": "Tecnologia", "areas": ["TI"]}];
+const ANDAMENTO={"total": 118, "Concluído": 101, "Não iniciado": 2, "Em andamento": 15};
+const ENTREGAS=["FlowPlan", "Lista de processos e sistemas", "RACI", "SIPOC", "Fluxograma", "Regras de negócio", "Telas", "Tabelas"];
 const ALERTS={
  'inspecoes-tecnicas':'Consta como “Concluído” na planilha de andamento, mas a pasta só tem o modelo em branco, sem fluxo no Bizagi. Decidir: mapear ou eliminar (governança indicou “validar na base”, coberto pela Preventiva).',
  'cep-spc':'O próprio procedimento tem regras divergentes: critério de capabilidade 1,67 em um ponto e 1,33 em outro, e tipos de gráfico diferentes no texto e no anexo. Definir antes do Explore.',
@@ -307,7 +319,7 @@ const RULE_LABEL=[
 let DATA=[], state={tab:{},diag:{},zoom:{},open:new Set()};
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const statusCls=s=>s==='Concluído'?'ok':((s==='Incompleto'||s==='Só fluxo')?'warn':'muted');
+const statusCls=s=>s==='Concluído'?'ok':(s==='Em andamento'?'warn':'muted');
 const nFlows=p=>p.diagramas.length||(p.imagens||[]).length;
 const isQMPM=p=>p.modulo==='QM'||p.modulo==='PM';
 const lines=v=>String(v||'').split(/\n+/).map(x=>x.replace(/^\s*[-•]\s*/,'').trim()).filter(Boolean);
@@ -315,13 +327,13 @@ const lines=v=>String(v||'').split(/\n+/).map(x=>x.replace(/^\s*[-•]\s*/,'').t
 function navHTML(filter){
   const f=(filter||'').toLowerCase();
   const cur=location.hash.slice(1);
-  const match=p=>!f||JSON.stringify([p.titulo,p.grupo,p.modulo,p.conceito,p.atores,p.raci.map(r=>r.etapa),p.tabelas.map(t=>t[2])]).toLowerCase().includes(f);
+  const match=p=>!f||JSON.stringify([p.titulo,p.grupo,p.modulo,p.conceito,p.keyuser,p.head,p.status,p.atores,p.raci.map(r=>r.etapa),p.tabelas.map(t=>t[2]),(p.andamento||[]).map(l=>l.nome),(p.dentro||[]).map(l=>l.nome)]).toLowerCase().includes(f);
   return MODULES.map(m=>{
     const items=DATA.filter(p=>p.modulo===m.sigla&&match(p));
     if(!items.length) return '';
     const open=!!f||items.some(p=>p.id===cur)||state.open.has(m.sigla);
     const multi=m.areas.filter(a=>items.some(p=>p.grupo===a)).length>1;
-    const li=p=>`<li><a href="#${p.id}" ${cur===p.id?'aria-current="page"':''}><i class="dot ${statusCls(p.status)==='ok'?'':statusCls(p.status)}"></i>${esc(p.titulo)}</a></li>`;
+    const li=p=>`<li><a href="#${p.id}" ${p.pendente?'class="pend" title="Arquivos ainda não estão no site"':''} ${cur===p.id?'aria-current="page"':''}><i class="dot ${statusCls(p.status)==='ok'?'':statusCls(p.status)}"></i>${esc(p.titulo)}</a></li>`;
     const body=m.areas.map(a=>{const it=items.filter(p=>p.grupo===a); if(!it.length) return ''; return (multi?`<li class="area">${esc(a)}</li>`:'')+it.map(li).join('');}).join('');
     return `<details class="acc" data-g="${esc(m.sigla)}" ${open?'open':''}><summary><span class="sig">${esc(m.sigla)}</span><span class="mname" title="${esc(m.nome)}">${esc(m.curto||m.nome)}</span><span class="cnt">${items.length}</span></summary><ul class="nav">${body}</ul></details>`;
   }).join('')||'<div class="nav-empty"><img src="img/lupa.jpg" alt=""><span>Nenhum processo encontrado. Tente outra palavra.</span></div>';
@@ -329,16 +341,17 @@ function navHTML(filter){
 function renderNav(){ $('#nav').innerHTML=navHTML($('#q').value); document.querySelectorAll('#nav .acc').forEach(d=>d.addEventListener('toggle',()=>{ if($('#q').value) return; d.open?state.open.add(d.dataset.g):state.open.delete(d.dataset.g); })); $('#homeLink').toggleAttribute('aria-current',!location.hash||location.hash==='#inicio'); if($('#homeLink').hasAttribute('aria-current')) $('#homeLink').setAttribute('aria-current','page'); }
 
 function home(){
-  const total=DATA.length, done=DATA.filter(p=>p.status==='Concluído').length;
-  const steps=DATA.reduce((a,p)=>a+p.raci.length,0), fields=DATA.reduce((a,p)=>a+p.tabelas.length,0), flows=DATA.reduce((a,p)=>a+nFlows(p),0);
-  const card=p=>`<a class="card" href="#${p.id}"><div class="meta"><span class="pill ${statusCls(p.status)}">${esc(p.status)}</span></div><h3>${esc(p.titulo)}</h3><p>${esc(p.conceito||'Conceito não preenchido no mapeamento.')}</p><div class="foot"><span>${nFlows(p)} fluxo${nFlows(p)===1?'':'s'}</span><span>${p.raci.length} etapas</span><span>${p.tabelas.length} campos</span></div></a>`;
+  const flows=DATA.reduce((a,p)=>a+nFlows(p),0), withContent=DATA.filter(p=>!p.pendente).length;
+  const card=p=>p.pendente
+    ?`<a class="card pend" href="#${p.id}"><div class="meta"><span class="pill ${statusCls(p.status)}">${esc(p.status)}</span></div><h3>${esc(p.titulo)}</h3><p>${p.status==='Concluído'?'Concluído no andamento. Os arquivos (Bizagi e Excel) ainda não estão no site.':'Mapeamento '+esc(p.status.toLowerCase())+'.'}</p><div class="foot"><span>Linha ${p.andamento[0].linha} do andamento</span></div></a>`
+    :`<a class="card" href="#${p.id}"><div class="meta"><span class="pill ${statusCls(p.status)}">${esc(p.status)}</span></div><h3>${esc(p.titulo)}</h3><p>${esc(p.conceito||'Conceito não preenchido no mapeamento.')}</p><div class="foot"><span>${nFlows(p)} fluxo${nFlows(p)===1?'':'s'}</span><span>${p.raci.length} etapas</span><span>${p.tabelas.length} campos</span></div></a>`;
   return `<section class="hero"><p class="eyebrow">Fase Prepare · SAP S/4HANA</p><h1>Processos Cinpal</h1>
   <p>Os processos AS-IS das áreas da Cinpal, organizados por módulo do SAP. Cada processo abre separado, com o fluxo, as regras de negócio, o RACI, o SIPOC, os dados usados hoje e o que o padrão SAP oferece. É o retrato de como a Cinpal trabalha hoje, ponto de partida para os workshops do Explore.</p></section>
   <div class="stats">
-    <div class="stat"><b>${done}/${total}</b><span>processos completos</span></div>
-    <div class="stat"><b>${flows}</b><span>fluxos desenhados</span></div>
-    <div class="stat"><b>${steps}</b><span>etapas com responsável (RACI)</span></div>
-    <div class="stat"><b>${fields}</b><span>campos de dados levantados</span></div>
+    <div class="stat"><b>${ANDAMENTO['Concluído']||0}/${ANDAMENTO.total}</b><span>processos críticos concluídos</span></div>
+    <div class="stat"><b>${ANDAMENTO['Em andamento']||0}</b><span>em andamento</span></div>
+    <div class="stat"><b>${ANDAMENTO['Não iniciado']||0}</b><span>não iniciados</span></div>
+    <div class="stat"><b>${flows}</b><span>fluxos desenhados no site</span></div>
   </div>
   <nav class="mod-nav" aria-label="Módulos">${MODULES.map(m=>{const n=DATA.filter(p=>p.modulo===m.sigla).length; return n?`<a href="#mod-${m.sigla.replace('/','')}" data-jump="mod-${m.sigla.replace('/','')}"><b>${esc(m.sigla)}</b>${esc(m.nome)} <span class="note">${n}</span></a>`:'';}).join('')}</nav>
   <div class="tip"><img src="img/lupa.jpg" alt="" width="300" height="353"><div><b>Procure qualquer processo</b><p>A busca do menu encontra pelo nome do processo, pela área, por quem participa ou por um campo de dados, como “OM”, “rebate” ou “centro de custo”.</p></div></div>
@@ -347,7 +360,7 @@ function home(){
     m.areas.map(a=>{const it=mp.filter(p=>p.grupo===a); if(!it.length) return ''; const ku=[...new Set(it.map(p=>p.keyuser).filter(Boolean))];
       return `<div class="area-h"><h3>${esc(a)}</h3>${ku.length?`<span class="note">Key user: ${esc(ku.join(', '))}</span>`:`<span class="note">${it.length} processo${it.length>1?'s':''}</span>`}</div><div class="cards">${it.map(card).join('')}</div>`;}).join('');}).join('')}
   <img class="capa" src="img/capa.jpg" alt="Cinpal – Confiança em avançar" width="1006" height="260" loading="lazy">
-  <p class="note">Fonte: pacotes de mapeamento AS-IS de cada área (Bizagi e Excel), nov/2026. Em QM e PM, a recomendação SAP é do Head do módulo; nos demais módulos é uma sugestão inicial pelo padrão SAP, a validar pelo Head de cada módulo. Tudo será confirmado no Explore.</p>`;
+  <p class="note">Status, nomes, áreas, Heads e key users: planilha oficial “Andamento do Mapeamento de Processos Críticos 2026” (aba MAPEAMENTO), sem os itens que a governança mandou eliminar. Conteúdo: pacotes de mapeamento AS-IS de cada área (Bizagi e Excel), nov/2026. Itens em itálico no menu ainda não têm os arquivos no site; “Fora da lista” são mapeamentos que vieram nas pastas mas não estão no andamento. Em QM e PM, a recomendação SAP é do Head do módulo; nos demais módulos é uma sugestão inicial pelo padrão SAP, a validar pelo Head de cada módulo. Tudo será confirmado no Explore.</p>`;
 }
 
 /* ---------- diagram ---------- */
@@ -438,7 +451,12 @@ function rulesTab(p){
     <dt>Conceito</dt><dd>${esc(p.conceito||'—')}</dd>
     ${p.sub?`<dt>Subprocessos</dt><dd>${esc(p.sub)}</dd>`:''}
     <dt>Onde fica hoje</dt><dd>${esc(lines(p.armazenamento).join(' · ')||'—')}</dd>
+    ${p.head?`<dt>Head responsável</dt><dd>${esc(p.head)}</dd>`:''}
     ${p.keyuser?`<dt>Key user</dt><dd>${esc(p.keyuser)}</dd>`:''}
+    <dt>Andamento oficial</dt><dd>${(p.andamento||[]).length?`<ul class="lines">${p.andamento.map(l=>`<li><span class="ln">linha ${l.linha}</span> ${esc(l.nome)} · ${esc(l.status)}</li>`).join('')}</ul>`:'Não está na planilha de andamento dos processos críticos.'}</dd>
+    ${(p.dentro||[]).length?`<dt>Também neste fluxo</dt><dd><ul class="lines">${p.dentro.map(l=>`<li><span class="ln">linha ${l.linha}</span> ${esc(l.nome)} · ${esc(l.status)}</li>`).join('')}</ul></dd>`:''}
+    ${p.conclusao?`<dt>Concluído em</dt><dd>${esc(p.conclusao)}</dd>`:''}
+    ${p.entregas?`<dt>Entregas no andamento</dt><dd>${checks(p.entregas)}</dd>`:''}
     ${p.arquivo?`<dt>Planilha de origem</dt><dd>${esc(p.arquivo)}</dd>`:''}
     ${(p.falta||[]).length?`<dt>Falta no mapeamento</dt><dd>${esc(p.falta.join(', '))}</dd>`:''}
     ${p.pdfs.length?`<dt>PDFs no pacote</dt><dd>${esc(p.pdfs.join(' · '))}</dd>`:''}
@@ -469,13 +487,28 @@ function sapTab(p){
   return `<div class="stack"><div class="sap">${txt}</div><p class="note">${isQMPM(p)?'Recomendação do Head do módulo pelo padrão SAP (best practices). É ponto de partida para o workshop de fit-to-standard e pode mudar no Explore.':'Sugestão inicial pelo padrão SAP (best practices), a validar pelo Head de '+esc(p.modulo)+' e pela consultoria no Explore.'}</p></div>`;
 }
 const TABS=[['fluxo','Fluxo',p=>nFlows(p)],['regras','Regras',p=>Object.keys(p.regras).length],['raci','RACI',p=>p.raci.length],['sipoc','SIPOC',p=>p.sipoc.length],['dados','Dados',p=>p.tabelas.length],['sap','No SAP',()=>null]];
+function pendPage(p){
+  const l=p.andamento[0];
+  const msg=p.status==='Concluído'?'Este mapeamento consta como concluído na planilha de andamento, mas os arquivos (fluxo do Bizagi e planilha Excel) ainda não estão na pasta de mapeamentos. Assim que chegarem, ele aparece aqui completo.':(p.status==='Em andamento'?'Este mapeamento está em andamento. Assim que a área concluir e enviar os arquivos, ele aparece aqui completo.':'Este mapeamento ainda não começou.');
+  return `<section class="phead"><p class="eyebrow">${esc(p.modulo)}${p.grupo!==p.modulo?' · '+esc(p.grupo):''}</p><h1>${esc(p.titulo)}</h1>
+  <div class="meta"><span class="pill ${statusCls(p.status)}">${esc(p.status)}</span><span class="pill steel">Linha ${l.linha} do andamento</span></div></section>
+  <div class="stack"><div class="panel"><p style="margin:0 0 14px">${msg}</p><dl class="kv">
+    ${p.head?`<dt>Head responsável</dt><dd>${esc(p.head)}</dd>`:''}
+    ${p.keyuser?`<dt>Key user</dt><dd>${esc(p.keyuser)}</dd>`:''}
+    ${p.conclusao?`<dt>Concluído em</dt><dd>${esc(p.conclusao)}</dd>`:''}
+    <dt>Entregas no andamento</dt><dd>${checks(p.entregas)}</dd>
+  </dl></div></div>`;
+}
+function checks(e){ return e?`<ul class="checks">${ENTREGAS.map((n,k)=>`<li class="${e[k]?'on':''}">${esc(n)}</li>`).join('')}</ul>`:'—'; }
 function proc(p){
+  if(p.pendente) return pendPage(p);
   const tab=state.tab[p.id]||(nFlows(p)?'fluxo':'regras');
   const body={fluxo:flowTab,regras:rulesTab,raci:raciTab,sipoc:sipocTab,dados:dataTab,sap:sapTab}[tab](p);
   return `<section class="phead"><p class="eyebrow">${esc(p.modulo)}${p.grupo!==p.modulo?' · '+esc(p.grupo):''}${p.keyuser?' · key user '+esc(p.keyuser):''}</p><h1>${esc(p.titulo)}</h1>
   <div class="meta"><span class="pill ${statusCls(p.status)}">${esc(p.status)}</span>${p.diagramas.length?`<span class="pill steel">${p.diagramas.length} fluxo${p.diagramas.length>1?'s':''} no Bizagi</span>`:((p.imagens||[]).length?`<span class="pill steel">Fluxo em imagem</span>`:'')}</div>
   ${p.conceito?`<p class="lede">${esc(p.conceito)}</p>`:''}</section>
   ${ALERTS[p.id]?`<div class="alert"><b>Atenção</b><span>${esc(ALERTS[p.id])}</span></div>`:''}
+  ${(p.avisos||[]).map(a=>`<div class="alert"><b>Atenção</b><span>${esc(a)}</span></div>`).join('')}
   <div class="tabs" role="tablist">${TABS.map(([k,l,c])=>{const n=c(p);return `<button role="tab" data-tab="${k}" aria-selected="${k===tab}">${l}${n!=null?`<span class="n">${n}</span>`:''}</button>`;}).join('')}</div>
   <div role="tabpanel">${body}</div>`;
 }
