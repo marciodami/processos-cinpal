@@ -364,7 +364,7 @@ function renderNav(){ $('#nav').innerHTML=navHTML($('#q').value); document.query
 function home(){
   const flows=DATA.reduce((a,p)=>a+nFlows(p),0), withContent=DATA.filter(p=>!p.pendente).length;
   const card=p=>p.pendente
-    ?`<a class="card pend" href="#${p.id}"><div class="meta"><span class="pill ${statusCls(p.status)}">${esc(p.status)}</span></div><h3>${esc(p.titulo)}</h3><p>${p.status==='Concluído'?'Concluído no andamento. Os arquivos (Bizagi e Excel) ainda não estão no site.':'Mapeamento '+esc(p.status.toLowerCase())+'.'}</p><div class="foot"><span>Linha ${p.andamento[0].linha} do andamento</span></div></a>`
+    ?`<a class="card pend" href="#${p.id}"><div class="meta"><span class="pill ${statusCls(p.status)}">${esc(p.status)}</span></div><h3>${esc(p.titulo)}</h3><p>${p.status==='Concluído'?'Concluído no andamento. Os arquivos (Bizagi e Excel) ainda não estão no site.':'Mapeamento '+esc(p.status.toLowerCase())+'.'}</p><div class="foot"><span>${p.keyuser?'Key user: '+esc(p.keyuser):'Sem arquivos no site'}</span></div></a>`
     :`<a class="card" href="#${p.id}"><div class="meta"><span class="pill ${statusCls(p.status)}">${esc(p.status)}</span></div><h3>${esc(p.titulo)}</h3><p>${esc(p.conceito||'Conceito não preenchido no mapeamento.')}</p><div class="foot"><span>${nFlows(p)} fluxo${nFlows(p)===1?'':'s'}</span><span>${p.raci.length} etapas</span><span>${p.tabelas.length} campos</span></div></a>`;
   return `<section class="hero"><p class="eyebrow">Fase Prepare · SAP S/4HANA</p><h1>Processos Cinpal</h1>
   <p>Os processos AS-IS das áreas da Cinpal, organizados por módulo do SAP. Cada processo abre separado, com o fluxo, as regras de negócio, o RACI, o SIPOC, os dados usados hoje e o que o padrão SAP oferece. É o retrato de como a Cinpal trabalha hoje, ponto de partida para os workshops do Explore.</p></section>
@@ -474,8 +474,8 @@ function rulesTab(p){
     <dt>Onde fica hoje</dt><dd>${esc(lines(p.armazenamento).join(' · ')||'—')}</dd>
     ${p.head?`<dt>Head responsável</dt><dd>${esc(p.head)}</dd>`:''}
     ${p.keyuser?`<dt>Key user</dt><dd>${esc(p.keyuser)}</dd>`:''}
-    <dt>Andamento oficial</dt><dd>${(p.andamento||[]).length?`<ul class="lines">${p.andamento.map(l=>`<li><span class="ln">linha ${l.linha}</span> ${esc(l.nome)} · ${esc(l.status)}</li>`).join('')}</ul>`:'Não está na planilha de andamento dos processos críticos.'}</dd>
-    ${(p.dentro||[]).length?`<dt>Também neste fluxo</dt><dd><ul class="lines">${p.dentro.map(l=>`<li><span class="ln">linha ${l.linha}</span> ${esc(l.nome)} · ${esc(l.status)}</li>`).join('')}</ul></dd>`:''}
+    <dt>Andamento oficial</dt><dd>${(p.andamento||[]).length?`<ul class="lines">${p.andamento.map(l=>`<li>${esc(l.nome)} · ${esc(l.status)}</li>`).join('')}</ul>`:'Não está na planilha de andamento dos processos críticos.'}</dd>
+    ${(p.dentro||[]).length?`<dt>Também neste fluxo</dt><dd><ul class="lines">${p.dentro.map(l=>`<li>${esc(l.nome)} · ${esc(l.status)}</li>`).join('')}</ul></dd>`:''}
     ${p.conclusao?`<dt>Concluído em</dt><dd>${esc(p.conclusao)}</dd>`:''}
     ${p.entregas?`<dt>Entregas no andamento</dt><dd>${checks(p.entregas)}</dd>`:''}
     ${p.arquivo?`<dt>Planilha de origem</dt><dd>${esc(p.arquivo)}</dd>`:''}
@@ -512,7 +512,7 @@ function pendPage(p){
   const l=p.andamento[0];
   const msg=p.status==='Concluído'?'Este mapeamento consta como concluído na planilha de andamento, mas os arquivos (fluxo do Bizagi e planilha Excel) ainda não estão na pasta de mapeamentos. Assim que chegarem, ele aparece aqui completo.':(p.status==='Em andamento'?'Este mapeamento está em andamento. Assim que a área concluir e enviar os arquivos, ele aparece aqui completo.':'Este mapeamento ainda não começou.');
   return `<section class="phead"><p class="eyebrow">${esc(p.modulo)}${p.grupo!==p.modulo?' · '+esc(p.grupo):''}</p><h1>${esc(p.titulo)}</h1>
-  <div class="meta"><span class="pill ${statusCls(p.status)}">${esc(p.status)}</span><span class="pill steel">Linha ${l.linha} do andamento</span></div></section>
+  <div class="meta"><span class="pill ${statusCls(p.status)}">${esc(p.status)}</span><span class="pill steel">Sem arquivos no site</span></div></section>
   <div class="stack"><div class="panel"><p style="margin:0 0 14px">${msg}</p><dl class="kv">
     ${p.head?`<dt>Head responsável</dt><dd>${esc(p.head)}</dd>`:''}
     ${p.keyuser?`<dt>Key user</dt><dd>${esc(p.keyuser)}</dd>`:''}
@@ -556,7 +556,7 @@ function statusPage(key){
     else if(l.titulo&&l.titulo!==l.nome) notes.push('No site: “'+l.titulo+'”');
     if(l.pendente&&l.status==='Concluído') notes.push('Arquivos ainda não estão no site');
     if(l.keyuser) notes.push('Key user: '+l.keyuser);
-    return `<li><a href="#${l.id}"><span class="nm"><b>${esc(l.nome)}</b><small>${esc(notes.join(' · '))}</small></span><span class="ln">linha ${l.linha}</span><span class="arr" aria-hidden="true">›</span></a></li>`;
+    return `<li><a href="#${l.id}"><span class="nm"><b>${esc(l.nome)}</b><small>${esc(notes.join(' · '))}</small></span><span class="arr" aria-hidden="true">›</span></a></li>`;
   };
   const body=MODULES.map(m=>{
     const ml=lines.filter(l=>l.modulo===m.sigla); if(!ml.length) return '';
@@ -569,7 +569,7 @@ function statusPage(key){
   <div class="meta"><span class="pill ${statusCls(cfg[1])}">${lines.length} de ${all.length}</span></div><p class="lede">${esc(cfg[3])} Clique em um processo para abrir.</p></section>
   <nav class="st-chips" aria-label="Filtrar por status">${STATUS_PAGES.map(x=>`<a href="#status-${x[0]}" ${x[0]===cfg[0]?'aria-current="page"':''}>${esc(x[1])} <b>${count(x[0])}</b></a>`).join('')}</nav>
   ${body||'<div class="panel empty">Nenhum processo com este status.</div>'}
-  <p class="note">Fonte: planilha “Andamento do Mapeamento de Processos Críticos 2026”, aba MAPEAMENTO. “linha” é a linha do Excel.</p>`;
+  <p class="note">Fonte: planilha “Andamento do Mapeamento de Processos Críticos 2026”, aba MAPEAMENTO.</p>`;
 }
 function route(){
   const id=location.hash.slice(1); const p=DATA.find(x=>x.id===id);
