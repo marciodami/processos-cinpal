@@ -10,7 +10,7 @@
 <style>
 /* Layout: app de consulta — barra lateral com os processos por área, painel com abas por processo (fluxo, regras, RACI, SIPOC, dados, SAP) */
 :root{
-  --bg:#F2F3F5; --panel:#FFFFFF; --ink:#1E252C; --soft:#56616B; --line:#DDE1E5; --line2:#ECEEF1;
+  --bg:#F2F3F5; --panel:#FFFFFF; --ink:#1E252C; --soft:#56616B; --line:#DDE1E5; --line2:#ECEEF1; --band:rgba(30,37,44,.045);
   --accent:#EE5A24; --accent-ink:#C2410C; --accent-tint:#FDEBE2;
   --brand-dark:#242A30; --brand-grad:linear-gradient(90deg,#F2402A 0%,#F7931E 100%);
   --steel:#2E4A5C; --steel-tint:#E3ECF1;
@@ -20,14 +20,14 @@
   --f-display:'Archivo',system-ui,sans-serif; --f-body:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif; --f-mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#171C21; --panel:#20262C; --ink:#E9EDF0; --soft:#A6B1BA; --line:#323B44; --line2:#283038;
+  --bg:#171C21; --panel:#20262C; --ink:#E9EDF0; --soft:#A6B1BA; --line:#323B44; --line2:#283038; --band:rgba(255,255,255,.05);
   --accent:#FF6A2B; --accent-ink:#FF8A4C; --accent-tint:#3B2418;
   --steel:#8FB4CC; --steel-tint:#1F2F3A;
   --ok:#6CC495; --ok-tint:#1C3227; --warn:#E3AE55; --warn-tint:#352A16; --muted:#8C989F; --muted-tint:#263037;
   --lane:#1E272D; --lane-head:#26323A; --task:#222D34; --task-line:#7D97A6; --gate:#3A3220; --gate-line:#D6A83E;
   --start:#6CC495; --end:#FF8A74; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#171C21; --panel:#20262C; --ink:#E9EDF0; --soft:#A6B1BA; --line:#323B44; --line2:#283038;
+  --bg:#171C21; --panel:#20262C; --ink:#E9EDF0; --soft:#A6B1BA; --line:#323B44; --line2:#283038; --band:rgba(255,255,255,.05);
   --accent:#FF6A2B; --accent-ink:#FF8A4C; --accent-tint:#3B2418;
   --steel:#8FB4CC; --steel-tint:#1F2F3A;
   --ok:#6CC495; --ok-tint:#1C3227; --warn:#E3AE55; --warn-tint:#352A16; --muted:#8C989F; --muted-tint:#263037;
@@ -155,6 +155,7 @@ h3{font:700 16px/1.25 var(--f-display);margin:0}
 .tbl-wrap.fit{overflow:visible;max-height:none}
 .tbl-wrap.fit thead th:first-child{border-top-left-radius:10px}.tbl-wrap.fit thead th:last-child{border-top-right-radius:10px}
 table{border-collapse:collapse;width:100%;font-size:14px}
+.raci tr>:nth-child(even),.sipoc tr>:nth-child(even){background-image:linear-gradient(var(--band),var(--band))}
 th,td{padding:9px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line2)}
 th{font-weight:600;font-size:12.5px;letter-spacing:.3px;color:var(--soft);background:var(--bg);position:sticky;top:0;z-index:2;box-shadow:inset 0 -1px 0 var(--line)}
 tr:last-child td{border-bottom:0}
